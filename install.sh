@@ -8,8 +8,8 @@ if [ "$(id -u)" -ne 0 ]; then
     exit 1
 fi
 
-echo "==> installing system packages"
-"$ROOT/scripts/apt-install-if-missing.sh" python3-venv nodejs npm postgresql postgresql-client
+echo "==> installing system dependencies"
+"$ROOT/scripts/install-deps.sh" node npm python postgres
 
 echo "==> preparing demo user home and .env permissions"
 install -d -o demo -g demo /home/demo
