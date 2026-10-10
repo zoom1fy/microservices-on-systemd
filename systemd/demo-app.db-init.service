@@ -1,0 +1,12 @@
+[Unit]
+Description=Initialize demo-app PostgreSQL database (dev helper)
+# Run manually: systemctl start demo-app.db-init.service
+After=network-online.target postgresql.service
+Wants=network-online.target postgresql.service
+ConditionPathExists=/opt/demo-app/db/init.sql
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+User=postgres
+ExecStart=/opt/demo-app/db/init-once.sh

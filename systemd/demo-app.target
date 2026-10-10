@@ -1,0 +1,7 @@
+[Unit]
+Description=Demo app group
+Wants=demo-app.backend.service demo-app.frontend.service
+After=network.target demo-app.backend.service demo-app.frontend.service
+
+[Install]
+WantedBy=multi-user.target
