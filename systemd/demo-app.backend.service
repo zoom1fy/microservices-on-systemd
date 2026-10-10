@@ -1,21 +1,20 @@
 [Unit]
 Description=Demo Backend (FastAPI)
-After=network.target postgresql.service
-Requires=postgresql.service
+After=network.target
 
 [Service]
 Type=simple
 User=demo
 Group=demo
-WorkingDirectory=/opt/demo-app/artifacts/current/backend
-EnvironmentFile=/opt/demo-app/.env
+WorkingDirectory=@ROOT@/artifacts/current/backend
+EnvironmentFile=@ROOT@/.env
 Environment=PYTHONDONTWRITEBYTECODE=1
-ExecStart=/opt/demo-app/artifacts/current/backend/.venv/bin/uvicorn main:app --host 127.0.0.1 --port 8000
+ExecStart=@ROOT@/artifacts/current/backend/.venv/bin/uvicorn main:app --host 127.0.0.1 --port 8000
 Restart=on-failure
 RestartSec=3
 NoNewPrivileges=yes
 ProtectSystem=strict
-ProtectHome=yes
+ProtectHome=@PROTECTHOME@
 PrivateTmp=yes
 
 [Install]

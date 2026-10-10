@@ -1,6 +1,8 @@
 #!/bin/bash
 set -euo pipefail
 
+ROOT="${INSTALL_ROOT:-$(cd -- "$(dirname -- "$(readlink -f -- "$0")")" && pwd)}"
+
 if [ "$(id -u)" -ne 0 ]; then
     echo "must run as root: sudo $0" >&2
     exit 1
@@ -17,12 +19,9 @@ echo "==> removing systemd units"
 rm -f /etc/systemd/system/demo-app.target \
       /etc/systemd/system/demo-app.backend.service \
       /etc/systemd/system/demo-app.frontend.service \
-      /etc/systemd/system/demo-app.db-init.service \
-      /etc/systemd/system/demo-app.system-deps.service \
-      /etc/systemd/system/demo-app.backend-deps.service \
-      /etc/systemd/system/demo-app.frontend-deps.service
+      /etc/systemd/system/demo-app.db-init.service
 
 systemctl daemon-reload
 systemctl reset-failed 2>/dev/null || true
 
-echo "done; built artifacts left in /opt/demo-app/artifacts"
+echo "done; built artifacts left in $ROOT/artifacts"

@@ -7,16 +7,16 @@ Wants=demo-app.backend.service
 Type=simple
 User=demo
 Group=demo
-WorkingDirectory=/opt/demo-app/artifacts/current/frontend
-EnvironmentFile=/opt/demo-app/.env
+WorkingDirectory=@ROOT@/artifacts/current/frontend
+EnvironmentFile=@ROOT@/.env
 Environment=PYTHONDONTWRITEBYTECODE=1
 Environment=NEXT_TELEMETRY_DISABLED=1
-ExecStart=/usr/bin/node /opt/demo-app/artifacts/current/frontend/node_modules/next/dist/bin/next start -p 3000
+ExecStart=@NODE@ @ROOT@/artifacts/current/frontend/node_modules/next/dist/bin/next start -p 3000
 Restart=on-failure
 RestartSec=3
 NoNewPrivileges=yes
 ProtectSystem=strict
-ProtectHome=yes
+ProtectHome=@PROTECTHOME@
 PrivateTmp=yes
 
 [Install]
