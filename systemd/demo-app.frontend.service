@@ -1,0 +1,23 @@
+[Unit]
+Description=Demo Frontend (Next.js)
+After=network.target demo-app.backend.service
+Wants=demo-app.backend.service
+
+[Service]
+Type=simple
+User=demo
+Group=demo
+WorkingDirectory=/opt/demo-app/artifacts/current/frontend
+EnvironmentFile=/opt/demo-app/.env
+Environment=PYTHONDONTWRITEBYTECODE=1
+Environment=NEXT_TELEMETRY_DISABLED=1
+ExecStart=/usr/bin/node /opt/demo-app/artifacts/current/frontend/node_modules/next/dist/bin/next start -p 3000
+Restart=on-failure
+RestartSec=3
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+
+[Install]
+WantedBy=demo-app.target
