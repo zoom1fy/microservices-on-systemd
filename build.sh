@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-ROOT=/opt/demo-app
+ROOT="${INSTALL_ROOT:-$(cd -- "$(dirname -- "$(readlink -f -- "$0")")" && pwd)}"
 SRC="$ROOT/src"
 ART="$ROOT/artifacts"
 REV="${REV:-$(date -u +%Y%m%d%H%M%S)}"
@@ -38,6 +38,8 @@ cp -r "$SRC/frontend/app" "$DEST/frontend/app"
     npm ci
     npm run build
 )
+
+chmod -R a+rX "$DEST"
 
 ln -sfn "$REV" "$ART/current"
 echo "==> done: $DEST (current -> $REV)"
