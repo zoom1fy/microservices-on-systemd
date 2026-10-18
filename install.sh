@@ -1,32 +1,63 @@
 #!/bin/bash
 set -euo pipefail
 
-ROOT=/opt/demo-app
+ROOT="${INSTALL_ROOT:-$(cd -- "$(dirname -- "$(readlink -f -- "$0")")" && pwd)}"
 
 if [ "$(id -u)" -ne 0 ]; then
     echo "must run as root: sudo $0" >&2
     exit 1
 fi
 
-echo "==> installing system packages"
-"$ROOT/scripts/apt-install-if-missing.sh" python3-venv nodejs npm postgresql postgresql-client
+echo "==> installing system dependencies"
+"$ROOT/scripts/install-deps.sh" nodejs npm python3 python3-venv postgresql postgresql-client
 
-echo "==> preparing demo user home and .env permissions"
+echo "==> creating demo system user/group (if missing)"
+if ! getent group demo >/dev/null 2>&1; then
+    groupadd --system demo
+fi
+if ! id demo >/dev/null 2>&1; then
+    useradd --system --gid demo --home-dir /home/demo --shell /usr/sbin/nologin demo
+fi
 install -d -o demo -g demo /home/demo
 chmod 600 "$ROOT/.env"
 
+echo "==> granting service accounts access to $ROOT"
+grant_traverse() {
+    local dir=$1 mode
+    while [ "$dir" != "/" ] && [ -n "$dir" ]; do
+        if command -v setfacl >/dev/null 2>&1 && \
+           setfacl -m u:demo:x -m u:postgres:x "$dir" 2>/dev/null; then
+            :
+        else
+            mode=$(stat -c '%a' "$dir" 2>/dev/null || echo "")
+            case "$mode" in
+                *[13579]|"") ;;
+                *) chmod o+x "$dir" 2>/dev/null || true ;;
+            esac
+        fi
+        dir=$(dirname -- "$dir")
+    done
+}
+grant_traverse "$(dirname -- "$ROOT")"
+
+echo "==> starting PostgreSQL"
+systemctl enable --now postgresql.service
+
+echo "==> allowing local 'postgres' peer authentication"
+hba="$(ls /etc/postgresql/*/main/pg_hba.conf 2>/dev/null | head -n1 || true)"
+if [ -n "$hba" ] && \
+   ! grep -qE '^[[:space:]]*local[[:space:]]+all[[:space:]]+postgres[[:space:]]+(peer|trust)' "$hba"; then
+    tmp="$(mktemp)"
+    { echo "local   all   postgres   peer"; cat "$hba"; } > "$tmp"
+    cat "$tmp" > "$hba"
+    rm -f "$tmp"
+    systemctl reload postgresql.service
+fi
+
 echo "==> deploying systemd units"
-for unit in demo-app.system-deps.service \
-            demo-app.backend-deps.service \
-            demo-app.frontend-deps.service \
-            demo-app.db-init.service; do
-    systemctl disable "$unit" 2>/dev/null || true
-done
-rm -f /etc/systemd/system/demo-app.system-deps.service \
-      /etc/systemd/system/demo-app.backend-deps.service \
-      /etc/systemd/system/demo-app.frontend-deps.service
-install -m 0644 "$ROOT"/systemd/*.service "$ROOT"/systemd/*.target /etc/systemd/system/
-systemctl daemon-reload
+systemctl disable "demo-app.db-init.service" 2>/dev/null || true
+
+"$ROOT/scripts/install-systemd-units.sh"
 
 echo "==> stopping previously running services"
 systemctl stop demo-app.frontend.service demo-app.backend.service 2>/dev/null || true
@@ -39,6 +70,7 @@ else
 fi
 
 echo "==> initializing demo database (dev helper)"
+systemctl reset-failed demo-app.db-init.service 2>/dev/null || true
 systemctl start demo-app.db-init.service
 
 echo "==> enabling and starting demo-app.target"
