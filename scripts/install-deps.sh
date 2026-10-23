@@ -78,7 +78,8 @@ satisfied() {
         node)     command -v node >/dev/null 2>&1 ;;
         npm)      command -v npm  >/dev/null 2>&1 ;;
         python)   command -v python3 >/dev/null 2>&1 \
-                  && python3 -c 'import venv' >/dev/null 2>&1 ;;
+                  && python3 -c 'import venv' >/dev/null 2>&1 \
+                  && python3 -m ensurepip --version >/dev/null 2>&1 ;;
         postgres) command -v psql >/dev/null 2>&1 \
                   || systemctl list-unit-files --type=service 2>/dev/null \
                      | grep -qiE '^postgresql[^[:space:]]*\.service' ;;
