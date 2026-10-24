@@ -1,5 +1,8 @@
+const BACKEND_HOST = process.env.BACKEND_HOST || '127.0.0.1';
+const BACKEND_PORT = process.env.BACKEND_PORT || '8000';
+
 async function getMessages() {
-  const res = await fetch('http://127.0.0.1:8000/api/messages', {
+  const res = await fetch(`http://${BACKEND_HOST}:${BACKEND_PORT}/api/messages`, {
     cache: 'no-store',
   });
   if (!res.ok) return [];

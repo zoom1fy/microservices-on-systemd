@@ -2,6 +2,13 @@
 set -euo pipefail
 
 ROOT="${INSTALL_ROOT:-$(cd -- "$(dirname -- "$(readlink -f -- "$0")")" && pwd)}"
+
+if [ -f "$ROOT/.env" ]; then
+    set -a
+    . "$ROOT/.env"
+    set +a
+fi
+
 SRC="$ROOT/src"
 ART="$ROOT/artifacts"
 REV="${REV:-$(date -u +%Y%m%d%H%M%S)}"
@@ -24,7 +31,26 @@ fi
 echo "==> building backend ($REV)"
 mkdir -p "$DEST/backend"
 cp "$SRC/backend/main.py" "$SRC/backend/requirements.txt" "$DEST/backend/"
-python3 -m venv "$DEST/backend/.venv"
+
+if python3 -c "import ensurepip" >/dev/null 2>&1; then
+    python3 -m venv "$DEST/backend/.venv"
+else
+    echo "ensurepip missing, creating venv without pip and bootstrapping it"
+    python3 -m venv --without-pip "$DEST/backend/.venv"
+    if command -v wget >/dev/null 2>&1; then
+        wget -qO "$DEST/get-pip.py" https://bootstrap.pypa.io/get-pip.py
+        "$DEST/backend/.venv/bin/python" "$DEST/get-pip.py"
+        rm -f "$DEST/get-pip.py"
+    elif command -v curl >/dev/null 2>&1; then
+        curl -sS -L https://bootstrap.pypa.io/get-pip.py -o "$DEST/get-pip.py"
+        "$DEST/backend/.venv/bin/python" "$DEST/get-pip.py"
+        rm -f "$DEST/get-pip.py"
+    else
+        echo "need curl or wget to bootstrap pip" >&2
+        exit 1
+    fi
+fi
+
 "$DEST/backend/.venv/bin/pip" install --upgrade pip
 "$DEST/backend/.venv/bin/pip" install -r "$DEST/backend/requirements.txt"
 

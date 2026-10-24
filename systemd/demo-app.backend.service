@@ -9,7 +9,7 @@ Group=demo
 WorkingDirectory=@ROOT@/artifacts/current/backend
 EnvironmentFile=@ROOT@/.env
 Environment=PYTHONDONTWRITEBYTECODE=1
-ExecStart=@ROOT@/artifacts/current/backend/.venv/bin/uvicorn main:app --host 127.0.0.1 --port 8000
+ExecStart=@ROOT@/artifacts/current/backend/.venv/bin/uvicorn main:app --host ${BACKEND_HOST} --port ${BACKEND_PORT}
 Restart=on-failure
 RestartSec=3
 NoNewPrivileges=yes
