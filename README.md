@@ -1,6 +1,6 @@
 # Microservices on systemd
 
-Небольшой проект для практики: Next.js, FastAPI и PostgreSQL, всё запускается через systemd. Docker не используется.
+Небольшой проект для практики: Next.js, FastAPI и PostgreSQL, всё запускается через systemd.
 
 ```text
 браузер → Next.js :3000 → FastAPI :8000 → PostgreSQL :5432
